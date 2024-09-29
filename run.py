@@ -3,8 +3,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import time
 
-def fetch_latest_offers():
-    url = 'https://khamsat.com/community/requests/727126'  # Replace with the actual URL of the latest contribution section
+def fetch_latest_offers(url):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
@@ -14,7 +13,7 @@ def fetch_latest_offers():
 
     if response.status_code != 200:
         print(f"Failed to fetch page: {response.status_code}")
-        return []
+        return [], None
 
     soup = BeautifulSoup(response.content, 'html.parser')
     offers = []
@@ -30,19 +29,22 @@ def fetch_latest_offers():
                 'Link': full_link,
             })
 
-    return offers
+    next_url = offers[0]['Link'] if offers else None  # Get the URL of the first offer to use as the next URL
+    return offers, next_url
 
 def save_offers_to_file(offers):
     df = pd.DataFrame(offers)
     df.to_csv('offers.csv', index=False, encoding='utf-8-sig')
 
 def main():
+    url = 'https://khamsat.com/community/requests/727126'  # Initial URL
     while True:
-        latest_offers = fetch_latest_offers()
+        latest_offers, new_url = fetch_latest_offers(url)
         if latest_offers:
             df = pd.DataFrame(latest_offers)
             print(df.to_string(index=False, justify='left'))
             save_offers_to_file(latest_offers)  # Save offers to file
+            url = new_url  # Update the URL with the top offer's URL
         else:
             print("No offers found or failed to fetch offers.")
         time.sleep(60)  # Wait for 60 seconds before fetching again
