@@ -1,53 +1,61 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+from telegram import Update, Bot
+from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, Filters
 import time
 
+TOKEN = '7782698870:AAHWqsRJYuISGiSDzktRQTcf3ThC17xyry4'
+bot = Bot(token=TOKEN)
+updater = Updater(token=TOKEN, use_context=True)
+dispatcher = updater.dispatcher
+
+subscribers = set()  # A set to store subscribed users
+
+def start(update: Update, context: CallbackContext):
+    subscribers.add(update.message.chat_id)
+    update.message.reply_text('You have subscribed to the latest offers!')
+
+def stop(update: Update, context: CallbackContext):
+    subscribers.discard(update.message.chat_id)
+    update.message.reply_text('You have unsubscribed from the latest offers.')
+
 def fetch_latest_offers(url):
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
-
+    headers = {'User-Agent': 'Mozilla/5.0'}
     response = requests.get(url, headers=headers)
-    response.encoding = 'utf-8'  # Ensure correct encoding
-
+    response.encoding = 'utf-8'
     if response.status_code != 200:
-        print(f"Failed to fetch page: {response.status_code}")
         return [], None
 
     soup = BeautifulSoup(response.content, 'html.parser')
     offers = []
-
-    # Adjust the selectors based on the actual HTML structure of the website
     for offer in soup.select('.last_activity'):
         title = offer.select_one('h5 a').text.strip()
         link = offer.select_one('h5 a')['href']
         full_link = f"https://khamsat.com{link}"
         if "requests" in link:
-            offers.append({
-                'Title': title,
-                'Link': full_link,
-            })
-
-    next_url = offers[0]['Link'] if offers else None  # Get the URL of the first offer to use as the next URL
+            offers.append({'Title': title, 'Link': full_link})
+    next_url = offers[0]['Link'] if offers else None
     return offers, next_url
 
-def save_offers_to_file(offers):
-    df = pd.DataFrame(offers)
-    df.to_csv('offers.csv', index=False, encoding='utf-8-sig')
+def send_offers_to_subscribers(offers):
+    message = '\n'.join([f"{offer['Title']}: {offer['Link']}" for offer in offers])
+    for chat_id in subscribers:
+        bot.send_message(chat_id=chat_id, text=message)
 
-def main():
-    url = 'https://khamsat.com/community/requests/727126'  # Initial URL
+def main_loop():
+    url = 'https://khamsat.com/community/requests/727126'
     while True:
-        latest_offers, new_url = fetch_latest_offers(url)
-        if latest_offers:
-            df = pd.DataFrame(latest_offers)
-            print(df.to_string(index=False, justify='left'))
-            save_offers_to_file(latest_offers)  # Save offers to file
+        offers, new_url = fetch_latest_offers(url)
+        if offers:
+            send_offers_to_subscribers(offers)
             url = new_url  # Update the URL with the top offer's URL
-        else:
-            print("No offers found or failed to fetch offers.")
-        time.sleep(60)  # Wait for 60 seconds before fetching again
+        time.sleep(60)
 
-if __name__ == "__main__":
-    main()
+start_handler = CommandHandler('start', start)
+stop_handler = CommandHandler('stop', stop)
+dispatcher.add_handler(start_handler)
+dispatcher.add_handler(stop_handler)
+
+updater.start_polling()  # Start the bot
+main_loop()  # Start the fetching loop
