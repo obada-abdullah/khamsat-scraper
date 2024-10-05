@@ -389,3 +389,7 @@ task: <Task pending name='Task-1' coro=<send_offers_periodically() running at /h
 2024-10-05 06:37:27,913 - __main__ - INFO - Fetched 8 offers.
 2024-10-05 06:37:27,913 - __main__ - INFO - No new offers to send since the last check.
 2024-10-05 06:37:27,914 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7782698870:AAHWqsRJYuISGiSDzktRQTcf3ThC17xyry4/getUpdates "HTTP/1.1 200 OK"
+2024-10-05 06:37:37,963 - __main__ - INFO - Checking for new offers...
+2024-10-05 06:37:39,446 - __main__ - INFO - Fetched 8 offers.
+2024-10-05 06:37:39,447 - __main__ - INFO - No new offers to send since the last check.
+2024-10-05 06:37:39,448 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7782698870:AAHWqsRJYuISGiSDzktRQTcf3ThC17xyry4/getUpdates "HTTP/1.1 200 OK"
