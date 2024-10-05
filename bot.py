@@ -6,16 +6,16 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 import requests
 from bs4 import BeautifulSoup
 
-# # Setup logging
-# logging.basicConfig(
-#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-#     level=logging.INFO,
-#     handlers=[
-#         logging.FileHandler('bot.log'),  # Logs to a file named 'bot.log'
-#         logging.StreamHandler()          # And logs to the console
-#     ]
-# )
-# logger = logging.getLogger(__name__)
+# Setup logging
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO,
+    handlers=[
+        logging.FileHandler('bot.log'),  # Logs to a file named 'bot.log'
+        logging.StreamHandler()          # And logs to the console
+    ]
+)
+logger = logging.getLogger(__name__)
 
 TOKEN = '7782698870:AAHWqsRJYuISGiSDzktRQTcf3ThC17xyry4'
 subscribers = set()
